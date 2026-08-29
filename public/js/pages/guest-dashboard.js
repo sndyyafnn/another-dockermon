@@ -174,7 +174,6 @@ export async function mountGuestDashboard(container) {
     // Init chart
     const canvas = document.getElementById(`gd-chart-${c.id}`);
     if (canvas) {
-      const { createOverviewChart: coc } = window.__charts__ || {};
       loadHistory(c.id).then(h => {
         const chart = createOverviewChart(canvas, h);
         chartInstances.push(chart);
@@ -189,7 +188,7 @@ export async function mountGuestDashboard(container) {
       loadHistory(c.id).then(h => {
         const canvas = document.getElementById(`gd-spark-${c.id}`);
         if (canvas) {
-          const chart = createSparkline(canvas, h.cpu, '#1acc00');
+          const chart = createSparkline(canvas, h.cpu, '#39ff14');
           chartInstances.push(chart);
         }
       });
@@ -198,7 +197,16 @@ export async function mountGuestDashboard(container) {
 
   // ── MEDIUM containers (5-9) ─────────────────────────────────────
   function renderMedium(el, containers) {
-    el.innerHTML = `<div class="guest-layout-medium">${containers.map(c => guestCardHtml(c, false)).join('')}</div>`;
+    el.innerHTML = `<div class="guest-layout-medium">${containers.map(c => guestCardHtml(c, true)).join('')}</div>`;
+    containers.forEach(c => {
+      loadHistory(c.id).then(h => {
+        const canvas = document.getElementById(`gd-spark-${c.id}`);
+        if (canvas) {
+          const chart = createSparkline(canvas, h.cpu, '#39ff14');
+          chartInstances.push(chart);
+        }
+      });
+    });
   }
 
   // ── DENSE containers (10+) ──────────────────────────────────────
@@ -269,7 +277,7 @@ export async function mountGuestDashboard(container) {
         ${showSpark ? `
         <div style="padding:0 var(--space-md) var(--space-sm)">
           <div class="sparkline-wrap">
-            <canvas id="gd-spark-${c.id}" height="28"></canvas>
+            <canvas id="gd-spark-${c.id}" height="50"></canvas>
           </div>
         </div>` : ''}
         <div style="border-top:1px solid var(--border-dim);padding:var(--space-xs) var(--space-md)">
