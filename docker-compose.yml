@@ -1,10 +1,8 @@
-version: '3.8'
-
 services:
-  app:
+  dockermon:
     build: .
-    image: noc-monitor:latest
-    container_name: noc-monitor
+    image: dockermon:latest
+    container_name: dockermon
     restart: unless-stopped
     ports:
       - "3200:3200"
@@ -13,6 +11,6 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     group_add:
-      - "${DOCKER_GID:-999}"
+      - "${DOCKER_GID:-988}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
