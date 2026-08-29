@@ -88,12 +88,12 @@ export async function mountContainerDetail(container, { id }) {
       </div>
 
       <!-- Logs column -->
-      <div style="display:flex;flex-direction:column;gap:var(--space-sm);min-height:0">
-        <div class="section-header">
+      <div style="display:flex;flex-direction:column;gap:var(--space-sm);height:100%;max-height:100%;overflow:hidden">
+        <div class="section-header" style="margin-bottom:0">
           <span class="section-title">// CONTAINER LOGS</span>
           <span class="mono dim text-xs" id="cd-log-status">CONNECTING...</span>
         </div>
-        <div id="cd-log-viewer" style="flex:1;min-height:300px;overflow:hidden"></div>
+        <div id="cd-log-viewer" style="flex:1;min-height:0;overflow:hidden"></div>
       </div>
     </div>
   `;
