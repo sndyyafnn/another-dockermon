@@ -14,7 +14,7 @@ COPY public/ ./public/
 RUN addgroup -g 999 docker || true
 RUN adduser -D -u 1001 nocapp && adduser nocapp docker || true
 
-EXPOSE 3000
+EXPOSE 3200
 
 USER nocapp
 

@@ -7,7 +7,7 @@ services:
     container_name: noc-monitor
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3200:3200"
     environment:
       - DB_HOST=mysql
       - DB_PORT=3306
@@ -17,7 +17,7 @@ services:
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - JWT_EXPIRES_IN=24h
       - DOCKER_SOCKET=/var/run/docker.sock
-      - PORT=3000
+      - PORT=3200
       - NODE_ENV=production
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
