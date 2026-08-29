@@ -15,6 +15,14 @@ export function fmtBytes(bytes) {
   return bytes + ' B';
 }
 
+export function fmtSpeed(bytesPerSec) {
+  if (bytesPerSec == null) return '--';
+  if (bytesPerSec >= 1e9) return (bytesPerSec / 1e9).toFixed(1) + ' GB/s';
+  if (bytesPerSec >= 1e6) return (bytesPerSec / 1e6).toFixed(1) + ' MB/s';
+  if (bytesPerSec >= 1e3) return (bytesPerSec / 1e3).toFixed(1) + ' KB/s';
+  return bytesPerSec + ' B/s';
+}
+
 export function fmtPct(v) {
   if (v == null) return '--';
   return v.toFixed(1) + '%';

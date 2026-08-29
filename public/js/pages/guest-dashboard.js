@@ -11,7 +11,7 @@ import { state }  from '../state.js';
 import { api }    from '../api.js';
 import { navigate } from '../router.js';
 import { createOverviewChart, createSparkline } from '../charts.js';
-import { fmtBytes, fmtPct, fmtUptime, pctClass, stateClass } from '../components/nav.js';
+import { fmtBytes, fmtSpeed, fmtPct, fmtUptime, pctClass, stateClass } from '../components/nav.js';
 
 export async function mountGuestDashboard(container) {
   container.innerHTML = `
@@ -116,8 +116,8 @@ export async function mountGuestDashboard(container) {
       // Update stat displays
       setInner(`gd-cpu-${c.id}`, fmtPct(s.cpu), pctClass(s.cpu));
       setInner(`gd-mem-${c.id}`, fmtPct(s.mem?.percent), pctClass(s.mem?.percent));
-      setInner(`gd-rx-${c.id}`,  fmtBytes(s.net?.rx));
-      setInner(`gd-tx-${c.id}`,  fmtBytes(s.net?.tx));
+      setInner(`gd-rx-${c.id}`,  fmtSpeed(s.net?.rx));
+      setInner(`gd-tx-${c.id}`,  fmtSpeed(s.net?.tx));
     });
   }
 
@@ -267,11 +267,11 @@ export async function mountGuestDashboard(container) {
           </div>
           <div class="guest-card-metric">
             <div class="guest-card-metric-label">NET RX</div>
-            <div class="guest-card-metric-value" style="font-size:.85rem" id="gd-rx-${c.id}">${s ? fmtBytes(s.net?.rx) : '--'}</div>
+            <div class="guest-card-metric-value" style="font-size:.85rem" id="gd-rx-${c.id}">${s ? fmtSpeed(s.net?.rx) : '--'}</div>
           </div>
           <div class="guest-card-metric">
             <div class="guest-card-metric-label">NET TX</div>
-            <div class="guest-card-metric-value" style="font-size:.85rem" id="gd-tx-${c.id}">${s ? fmtBytes(s.net?.tx) : '--'}</div>
+            <div class="guest-card-metric-value" style="font-size:.85rem" id="gd-tx-${c.id}">${s ? fmtSpeed(s.net?.tx) : '--'}</div>
           </div>
         </div>
         ${showSpark ? `

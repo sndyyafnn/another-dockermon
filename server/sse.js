@@ -147,7 +147,34 @@ async function poll() {
         .map(async c => {
           try {
             const s = await docker.getContainerStats(c.id);
-            const point = { ...s, id: c.id, name: c.name, ts: Date.now() };
+            const prev = latestStats.get(c.id);
+            const now = Date.now();
+            
+            // Calculate real-time throughput (bytes per second)
+            let rxSec = 0, txSec = 0;
+            if (prev && prev.ts && now > prev.ts) {
+              const timeDeltaSec = (now - prev.ts) / 1000;
+              const prevRx = prev.net?.rxTotal !== undefined ? prev.net.rxTotal : (prev.net?.rx || 0);
+              const prevTx = prev.net?.txTotal !== undefined ? prev.net.txTotal : (prev.net?.tx || 0);
+              const rxDelta = Math.max(0, (s.net?.rx || 0) - prevRx);
+              const txDelta = Math.max(0, (s.net?.tx || 0) - prevTx);
+              rxSec = Math.round(rxDelta / timeDeltaSec);
+              txSec = Math.round(txDelta / timeDeltaSec);
+            }
+
+            const point = {
+              ...s,
+              net: {
+                rx: rxSec,          // Real-time speed (B/s)
+                tx: txSec,          // Real-time speed (B/s)
+                rxTotal: s.net?.rx, // Cumulative total (bytes)
+                txTotal: s.net?.tx, // Cumulative total (bytes)
+              },
+              id: c.id,
+              name: c.name,
+              ts: now,
+            };
+
             latestStats.set(c.id, point);
             pushHistory(c.id, point);
             statsArr.push(point);

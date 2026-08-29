@@ -6,7 +6,7 @@ import { api }    from '../api.js';
 import { streamLogs } from '../api.js';
 import { createCpuChart, createMemChart, createNetChart, updateChart, updateDualChart, sliceHistory, TIME_RANGES } from '../charts.js';
 import { createLogViewer } from '../components/log-viewer.js';
-import { fmtBytes, fmtPct, fmtUptime, fmtAge, pctClass, stateClass } from '../components/nav.js';
+import { fmtBytes, fmtSpeed, fmtPct, fmtUptime, fmtAge, pctClass, stateClass } from '../components/nav.js';
 
 export async function mountContainerDetail(container, { id }) {
   if (!id) {
@@ -190,8 +190,8 @@ export async function mountContainerDetail(container, { id }) {
     setValue('cd-cpu',    s.cpu?.toFixed(1) ?? '--', '%', pctClass(s.cpu));
     setValue('cd-mem',    s.mem?.percent?.toFixed(1) ?? '--', '%', pctClass(s.mem?.percent));
     setValue('cd-mem-used', fmtBytes(s.mem?.used), '');
-    setValue('cd-rx',   fmtBytes(s.net?.rx), '');
-    setValue('cd-tx',   fmtBytes(s.net?.tx), '');
+    setValue('cd-rx',   fmtSpeed(s.net?.rx), '');
+    setValue('cd-tx',   fmtSpeed(s.net?.tx), '');
     setValue('cd-blk-r', fmtBytes(s.blk?.read), '');
     setValue('cd-blk-w', fmtBytes(s.blk?.write), '');
     setValue('cd-pids',  s.pids ?? '--', '');
