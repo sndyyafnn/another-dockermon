@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="NOC Monitor — Docker infrastructure monitoring platform. Administrator and guest login.">
+  <title>NOC Monitor — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    /* Login page specific */
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+
+    .login-wrapper {
+      width: 100%;
+      max-width: 440px;
+      padding: var(--space-lg);
+    }
+
+    .login-brand {
+      text-align: center;
+      margin-bottom: var(--space-xl);
+    }
+
+    .login-brand .brand-logo {
+      font-family: var(--font-mono);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--green-bright);
+      text-shadow: var(--glow-green-strong);
+      letter-spacing: 0.15em;
+      margin-bottom: var(--space-xs);
+    }
+
+    .login-brand .brand-sub {
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .login-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-normal);
+      padding: var(--space-xl);
+      position: relative;
+    }
+
+    .login-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--green-dim), var(--green-bright), var(--green-dim), transparent);
+    }
+
+    .login-panel-title {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-sm);
+      border-bottom: 1px solid var(--border-dim);
+    }
+
+    .login-field { margin-bottom: var(--space-md); }
+
+    .login-field label {
+      display: block;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: var(--space-xs);
+    }
+
+    .login-field input {
+      width: 100%;
+      background: var(--bg-raised);
+      border: 1px solid var(--border-normal);
+      color: var(--text-bright);
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      padding: 10px var(--space-md);
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .login-field input:focus {
+      border-color: var(--green-normal);
+      box-shadow: 0 0 0 2px var(--green-ghost);
+    }
+
+    .login-field input::placeholder { color: var(--text-ghost); }
+
+    .login-btn {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--green-dim);
+      color: var(--green-normal);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 12px;
+      cursor: pointer;
+      margin-top: var(--space-md);
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--green-ghost);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .login-btn:hover { border-color: var(--green-bright); color: var(--green-bright); box-shadow: var(--glow-green); }
+    .login-btn:hover::before { opacity: 1; }
+    .login-btn:active { transform: scale(0.99); }
+
+    .login-error {
+      background: rgba(204, 34, 51, 0.1);
+      border: 1px solid #cc2233;
+      color: #ff4455;
+      font-size: 0.75rem;
+      padding: var(--space-sm) var(--space-md);
+      margin-top: var(--space-md);
+      display: none;
+    }
+
+    .login-error.visible { display: block; }
+
+    .login-footer {
+      text-align: center;
+      margin-top: var(--space-lg);
+      font-size: 0.6rem;
+      color: var(--text-ghost);
+      letter-spacing: 0.15em;
+      font-family: var(--font-mono);
+    }
+
+    .login-tab-switcher {
+      display: flex;
+      margin-bottom: var(--space-lg);
+      border: 1px solid var(--border-normal);
+    }
+
+    .login-tab {
+      flex: 1;
+      padding: var(--space-sm);
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .login-tab.active {
+      background: var(--green-ghost);
+      color: var(--green-normal);
+      border-bottom: 2px solid var(--green-normal);
+    }
+
+    .login-tab:hover:not(.active) { color: var(--text-normal); background: rgba(255,255,255,0.02); }
+
+    .login-status-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-lg);
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+    }
+
+    .status-dot-login {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--status-ok);
+      box-shadow: 0 0 6px var(--status-ok);
+      animation: pulse 2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+  <!-- CRT overlay effects -->
+  <div class="crt-scanlines" aria-hidden="true"></div>
+  <div class="crt-vignette"  aria-hidden="true"></div>
+
+  <div class="login-wrapper">
+    <div class="login-brand">
+      <div class="brand-logo">◈ NOC MONITOR</div>
+      <div class="brand-sub">Docker Infrastructure Monitoring Platform</div>
+    </div>
+
+    <div class="login-panel">
+      <div class="login-panel-title">// SECURE ACCESS TERMINAL</div>
+
+      <div class="login-status-row">
+        <div class="status-dot-login"></div>
+        <span>SYSTEM ONLINE — AUTHENTICATION REQUIRED</span>
+      </div>
+
+      <div class="login-tab-switcher">
+        <button class="login-tab active" id="tab-admin" onclick="switchTab('admin')">ADMIN</button>
+        <button class="login-tab"        id="tab-guest" onclick="switchTab('guest')">GUEST</button>
+      </div>
+
+      <form id="login-form" autocomplete="off">
+        <div class="login-field" id="field-username" style="display:none;">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" placeholder="admin" autocomplete="username">
+        </div>
+        <div class="login-field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button type="submit" class="login-btn" id="login-btn">
+          ▶ AUTHENTICATE
+        </button>
+        <div class="login-error" id="login-error"></div>
+      </form>
+    </div>
+
+    <div class="login-footer">NOC MONITOR v1.0.0 &nbsp;·&nbsp; DOCKER INFRASTRUCTURE &nbsp;·&nbsp; SECURE</div>
+  </div>
+
+  <script>
+    let currentTab = 'admin';
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('tab-admin').classList.toggle('active', tab === 'admin');
+      document.getElementById('tab-guest').classList.toggle('active', tab === 'guest');
+      document.getElementById('field-username').style.display = tab === 'admin' ? 'block' : 'none';
+      document.getElementById('login-error').classList.remove('visible');
+      if (tab === 'admin') {
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+      } else {
+        document.getElementById('password').value = '';
+      }
+    }
+
+    // Show username field for admin by default
+    switchTab('admin');
+
+    document.getElementById('login-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const btn = document.getElementById('login-btn');
+      const err = document.getElementById('login-error');
+      err.classList.remove('visible');
+      btn.textContent = '▷ AUTHENTICATING...';
+      btn.disabled = true;
+
+      const username = currentTab === 'admin'
+        ? document.getElementById('username').value.trim()
+        : 'guest';
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
+        if (res.ok && data.ok) {
+          window.location.href = '/';
+        } else {
+          err.textContent = data.error || 'Authentication failed';
+          err.classList.add('visible');
+          btn.textContent = '▶ AUTHENTICATE';
+          btn.disabled = false;
+        }
+      } catch {
+        err.textContent = 'Connection error — server unreachable';
+        err.classList.add('visible');
+        btn.textContent = '▶ AUTHENTICATE';
+        btn.disabled = false;
+      }
+    });
+
+    // Check if already logged in
+    fetch('/api/auth/me').then(r => { if (r.ok) window.location.href = '/'; });
+  </script>
+</body>
+</html>

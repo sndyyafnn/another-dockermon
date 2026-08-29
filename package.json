@@ -1,0 +1,25 @@
+{
+  "name": "docker-noc-monitor",
+  "version": "1.0.0",
+  "description": "Docker container monitoring platform with CRT NOC aesthetic",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "setup": "node server/db.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "dockerode": "^4.0.2",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.9.7",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.3"
+  }
+}

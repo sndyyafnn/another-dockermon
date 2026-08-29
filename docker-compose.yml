@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    image: noc-monitor:latest
+    container_name: noc-monitor
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=nocuser
+      - DB_PASSWORD=${DB_PASSWORD:-nocpassword}
+      - DB_NAME=docker_monitor
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - JWT_EXPIRES_IN=24h
+      - DOCKER_SOCKET=/var/run/docker.sock
+      - PORT=3000
+      - NODE_ENV=production
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - noc-net
+
+  mysql:
+    image: mysql:8.0
+    container_name: noc-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: docker_monitor
+      MYSQL_USER: nocuser
+      MYSQL_PASSWORD: ${DB_PASSWORD:-nocpassword}
+    volumes:
+      - noc-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "nocuser", "-p${DB_PASSWORD:-nocpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - noc-net
+
+volumes:
+  noc-mysql-data:
+    driver: local
+
+networks:
+  noc-net:
+    driver: bridge
