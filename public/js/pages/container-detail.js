@@ -43,7 +43,7 @@ export async function mountContainerDetail(container, { id }) {
     </div>
 
     <!-- Charts + logs -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);padding:var(--space-md);flex:1;min-height:0">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);padding:var(--space-md);flex:1;min-height:0;height:calc(100vh - 160px);overflow:hidden">
 
       <!-- Charts column -->
       <div style="display:flex;flex-direction:column;gap:var(--space-md);min-height:0">

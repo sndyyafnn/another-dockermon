@@ -3,10 +3,9 @@
  */
 
 export function createLogViewer(containerId, options = {}) {
-  const MAX_LINES    = options.maxLines    || 500;
-  const levels       = { INFO: true, WARN: true, ERROR: true, DEBUG: true };
-  let   autoScroll   = true;
-  let   lines        = [];
+  let   maxLinesLimit = options.maxLines || 25;
+  const levels        = { INFO: true, WARN: true, ERROR: true, DEBUG: true };
+  let   lines         = [];
 
   const root = document.getElementById(containerId);
   if (!root) return null;
@@ -14,15 +13,20 @@ export function createLogViewer(containerId, options = {}) {
   root.innerHTML = `
     <div class="log-viewer">
       <div class="log-toolbar">
+        <span class="mono dim text-xs" style="letter-spacing:.15em;margin-right:4px;">TAIL:</span>
+        <select class="field-select" id="${containerId}-limit" style="width:70px;padding:2px 6px;font-size:0.65rem;height:24px;margin-right:8px">
+          <option value="10">10</option>
+          <option value="25" selected>25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+        </select>
         <span class="mono dim text-xs" style="letter-spacing:.15em;margin-right:4px;">FILTER:</span>
         <button class="log-filter-btn active info"  data-level="INFO">INFO</button>
         <button class="log-filter-btn active warn"  data-level="WARN">WARN</button>
         <button class="log-filter-btn active error" data-level="ERROR">ERROR</button>
         <button class="log-filter-btn active debug" data-level="DEBUG">DEBUG</button>
-        <button class="log-autoscroll-btn on" id="${containerId}-scroll">
-          <i class="ph ph-arrow-line-down"></i> AUTO
-        </button>
-        <button class="btn btn-sm" id="${containerId}-clear" style="margin-left:8px">CLEAR</button>
+        <button class="btn btn-sm" id="${containerId}-clear" style="margin-left:auto">CLEAR</button>
       </div>
       <div class="log-body" id="${containerId}-body">
         <div class="log-empty">AWAITING LOG DATA...</div>
@@ -30,9 +34,14 @@ export function createLogViewer(containerId, options = {}) {
     </div>
   `;
 
-  const body   = root.querySelector(`#${containerId}-body`);
-  const scrollBtn = root.querySelector(`#${containerId}-scroll`);
+  const body     = root.querySelector(`#${containerId}-body`);
+  const limitSelect = root.querySelector(`#${containerId}-limit`);
   const clearBtn  = root.querySelector(`#${containerId}-clear`);
+
+  limitSelect?.addEventListener('change', e => {
+    maxLinesLimit = parseInt(e.target.value) || 25;
+    rerender();
+  });
 
   // Filter buttons
   root.querySelectorAll('.log-filter-btn').forEach(btn => {
@@ -57,16 +66,6 @@ export function createLogViewer(containerId, options = {}) {
     body.innerHTML = '<div class="log-empty">LOG CLEARED</div>';
   });
 
-  // Stop auto-scroll on manual scroll up
-  body.addEventListener('scroll', () => {
-    const threshold = 30;
-    const atBottom = body.scrollHeight - body.scrollTop - body.clientHeight < threshold;
-    if (!atBottom && autoScroll) {
-      autoScroll = false;
-      scrollBtn?.classList.remove('on');
-    }
-  });
-
   function renderLine(line) {
     const ts  = new Date(line.timestamp).toLocaleTimeString('en-US', {
       hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit'
@@ -82,12 +81,12 @@ export function createLogViewer(containerId, options = {}) {
   }
 
   function rerender() {
-    const visible = lines.filter(l => levels[l.level] !== false);
+    const visible = lines.filter(l => levels[l.level] !== false).slice(-maxLinesLimit);
     if (visible.length === 0) {
       body.innerHTML = '<div class="log-empty">NO MATCHING LOG ENTRIES</div>';
       return;
     }
-    // Rebuild DOM efficiently - newest on top
+    // Rebuild DOM efficiently — newest line at the top
     const frag = document.createDocumentFragment();
     [...visible].reverse().forEach(line => frag.appendChild(renderLine(line)));
     body.innerHTML = '';
@@ -97,27 +96,18 @@ export function createLogViewer(containerId, options = {}) {
 
   function addLine(line) {
     if (!line || !line.message) return;
-    // Remove empty state
     const empty = body.querySelector('.log-empty');
     if (empty) empty.remove();
 
     lines.push(line);
-    if (lines.length > MAX_LINES) lines.shift();
+    if (lines.length > 500) lines.shift();
 
-    if (!levels[line.level]) return; // filtered out
-
-    const el = renderLine(line);
-    body.prepend(el);
-
-    if (autoScroll) {
-      body.scrollTop = 0;
-    }
+    rerender();
   }
 
   function addLines(lineArr) {
     if (!lineArr || !lineArr.length) return;
-    body.innerHTML = '';
-    lines = lineArr.slice(-MAX_LINES);
+    lines = lineArr;
     rerender();
   }
 
