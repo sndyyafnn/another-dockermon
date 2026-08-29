@@ -8,17 +8,8 @@ services:
     restart: unless-stopped
     ports:
       - "3200:3200"
-    environment:
-      - DB_HOST=${DB_HOST:-host.docker.internal}
-      - DB_PORT=${DB_PORT:-3306}
-      - DB_USER=${DB_USER:-root}
-      - DB_PASSWORD=${DB_PASSWORD:-your_mysql_password}
-      - DB_NAME=${DB_NAME:-docker_monitor}
-      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
-      - JWT_EXPIRES_IN=24h
-      - DOCKER_SOCKET=/var/run/docker.sock
-      - PORT=3200
-      - NODE_ENV=production
+    env_file:
+      - .env
     extra_hosts:
       - "host.docker.internal:host-gateway"
     group_add:
