@@ -267,6 +267,12 @@ async function unpauseContainer(id) {
   return container.unpause();
 }
 
+// ── Docker connectivity check ─────────────────────────────────────
+async function ping() {
+  await docker.ping();
+  return true;
+}
+
 module.exports = {
   getContainers,
   getContainerStats,
