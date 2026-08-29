@@ -86,32 +86,8 @@ export function initUserDisplay(user) {
 // ── Host status bar (topbar center) ──────────────────────────────
 function renderHostStatusBar(host) {
   const el = document.getElementById('host-status-bar');
-  if (!el || !host) return;
-
-  const cpuPct  = 0;  // host CPU% not in host info; show mem only
-  const memPct  = host.memPercent || 0;
-  const memCls  = pctClass(memPct);
-
-  el.innerHTML = `
-    <div class="sys-status-bar">
-      <div class="sys-status-item">
-        <span class="sys-status-label">MEM</span>
-        <span class="sys-status-value ${memCls}">${fmtPct(memPct)}</span>
-      </div>
-      <div class="sys-status-item">
-        <span class="sys-status-label">RUNNING</span>
-        <span class="sys-status-value">${host.containersRunning ?? '--'}</span>
-      </div>
-      <div class="sys-status-item">
-        <span class="sys-status-label">STOPPED</span>
-        <span class="sys-status-value">${host.containersStopped ?? '--'}</span>
-      </div>
-      <div class="sys-status-item">
-        <span class="sys-status-label">UPTIME</span>
-        <span class="sys-status-value">${fmtUptime(host.uptime)}</span>
-      </div>
-    </div>
-  `;
+  if (!el) return;
+  el.innerHTML = '';
 }
 
 // ── Docker status indicator ───────────────────────────────────────

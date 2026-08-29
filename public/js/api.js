@@ -39,6 +39,7 @@ export const api = {
     visibility: () => apiFetch('/api/admin/visibility'),
     setVisibility: (id, body) => apiFetch(`/api/admin/visibility/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
     setGuestPassword: (password) => apiFetch('/api/admin/settings/guest-password', { method: 'PUT', body: JSON.stringify({ password }) }),
+    containerAction: (id, action) => apiFetch(`/api/admin/containers/${id}/action`, { method: 'POST', body: JSON.stringify({ action }) }),
   },
 
   // Guest

@@ -241,10 +241,30 @@ async function getHostInfo() {
   };
 }
 
-// ── Docker connectivity check ─────────────────────────────────────
-async function ping() {
-  await docker.ping();
-  return true;
+// ── Container actions ─────────────────────────────────────────────
+async function startContainer(id) {
+  const container = docker.getContainer(id);
+  return container.start();
+}
+
+async function stopContainer(id) {
+  const container = docker.getContainer(id);
+  return container.stop();
+}
+
+async function restartContainer(id) {
+  const container = docker.getContainer(id);
+  return container.restart();
+}
+
+async function pauseContainer(id) {
+  const container = docker.getContainer(id);
+  return container.pause();
+}
+
+async function unpauseContainer(id) {
+  const container = docker.getContainer(id);
+  return container.unpause();
 }
 
 module.exports = {
@@ -256,4 +276,9 @@ module.exports = {
   streamContainerLogs,
   getHostInfo,
   ping,
+  startContainer,
+  stopContainer,
+  restartContainer,
+  pauseContainer,
+  unpauseContainer,
 };

@@ -157,6 +157,44 @@ export function createOverviewChart(canvas, history) {
   return new Chart(canvas, cfg);
 }
 
+// ── Doughnut / Pie Chart ──────────────────────────────────────────
+export function createDoughnutChart(canvas, labels, data, colors) {
+  return new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: colors,
+        borderColor: '#091009',
+        borderWidth: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: {
+          display: true,
+          position: 'right',
+          labels: {
+            color: CRT.textBright,
+            font: { family: CRT.fontMono, size: 9 },
+            boxWidth: 10,
+            padding: 8,
+          },
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.label}: ${ctx.raw}`,
+          },
+        },
+      },
+    },
+  });
+}
+
 // ── Sparkline (tiny inline chart) ─────────────────────────────────
 export function createSparkline(canvas, data, color = CRT.green) {
   return new Chart(canvas, {

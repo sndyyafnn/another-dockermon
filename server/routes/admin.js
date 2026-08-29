@@ -100,6 +100,26 @@ router.get('/containers/:id/logs/snapshot', async (req, res) => {
   }
 });
 
+// ── Container control actions ──────────────────────────────────────
+router.post('/containers/:id/action', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action } = req.body;
+    switch (action) {
+      case 'start':   await docker.startContainer(id); break;
+      case 'stop':    await docker.stopContainer(id); break;
+      case 'restart': await docker.restartContainer(id); break;
+      case 'pause':   await docker.pauseContainer(id); break;
+      case 'unpause': await docker.unpauseContainer(id); break;
+      default:
+        return res.status(400).json({ error: 'Invalid action. Supported: start, stop, restart, pause, unpause' });
+    }
+    res.json({ ok: true, action, containerId: id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Guest visibility ──────────────────────────────────────────────
 router.get('/visibility', async (req, res) => {
   try {

@@ -4,7 +4,7 @@
 import { state }  from '../state.js';
 import { api }    from '../api.js';
 import { navigate } from '../router.js';
-import { createCpuChart, createMemChart, createOverviewChart, createSparkline } from '../charts.js';
+import { createCpuChart, createMemChart, createOverviewChart, createDoughnutChart, createSparkline } from '../charts.js';
 import { fmtBytes, fmtPct, fmtUptime, fmtAge, pctClass, stateClass } from '../components/nav.js';
 
 export async function mountOverview(container) {
@@ -31,7 +31,7 @@ export async function mountOverview(container) {
           <div class="panel-header">
             <span class="panel-title">
               <span class="status-dot ok pulse"></span>
-              CONTAINERS
+              CONTAINERS LIST
             </span>
             <div class="filter-bar" style="border:none;padding:0;background:transparent">
               <button class="filter-chip active" data-filter="all">ALL</button>
@@ -44,13 +44,13 @@ export async function mountOverview(container) {
             <table class="container-table" id="ov-table">
               <thead>
                 <tr>
-                  <th>NAME</th>
-                  <th>STATUS</th>
-                  <th>CPU</th>
-                  <th>MEM</th>
-                  <th>NET RX/TX</th>
-                  <th>PIDS</th>
-                  <th>AGE</th>
+                  <th class="sortable-th" data-sort="name" style="cursor:pointer;user-select:none">NAME <span class="sort-icon">▲</span></th>
+                  <th class="sortable-th" data-sort="state" style="cursor:pointer;user-select:none">STATUS <span class="sort-icon"></span></th>
+                  <th class="sortable-th" data-sort="cpu" style="cursor:pointer;user-select:none">CPU <span class="sort-icon"></span></th>
+                  <th class="sortable-th" data-sort="mem" style="cursor:pointer;user-select:none">MEM <span class="sort-icon"></span></th>
+                  <th class="sortable-th" data-sort="net" style="cursor:pointer;user-select:none">NET RX/TX <span class="sort-icon"></span></th>
+                  <th class="sortable-th" data-sort="pids" style="cursor:pointer;user-select:none">PIDS <span class="sort-icon"></span></th>
+                  <th class="sortable-th" data-sort="age" style="cursor:pointer;user-select:none">AGE <span class="sort-icon"></span></th>
                 </tr>
               </thead>
               <tbody id="ov-tbody">
@@ -61,7 +61,7 @@ export async function mountOverview(container) {
         </div>
       </div>
 
-      <!-- Right: system info + host chart -->
+      <!-- Right: system info + donut charts -->
       <div class="overview-side">
         <div class="panel">
           <div class="panel-header"><span class="panel-title">HOST SYSTEM</span></div>
@@ -70,30 +70,22 @@ export async function mountOverview(container) {
           </div>
         </div>
 
-        <div class="panel" style="flex:1">
+        <div class="panel">
           <div class="panel-header">
-            <span class="panel-title">HOST MEMORY</span>
+            <span class="panel-title">MEMORY ALLOCATION</span>
             <span class="mono text-xs" id="ov-mem-pct" style="color:var(--green-normal)">--%</span>
           </div>
-          <div class="panel-body" style="padding:var(--space-sm)">
-            <div class="chart-container" style="height:120px">
-              <canvas id="ov-mem-chart"></canvas>
-            </div>
+          <div class="panel-body" style="padding:var(--space-sm);height:140px">
+            <canvas id="ov-mem-pie-chart"></canvas>
           </div>
         </div>
 
-        <div class="panel" style="flex:1">
+        <div class="panel">
           <div class="panel-header">
-            <span class="panel-title">SYSTEM STATUS</span>
+            <span class="panel-title">CONTAINER STATUS RATIO</span>
           </div>
-          <div id="ov-system-status" style="padding:var(--space-md);font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim)">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-              <span class="status-dot ok pulse"></span>
-              <span style="color:var(--status-ok);letter-spacing:.15em">ALL SYSTEMS OPERATIONAL</span>
-            </div>
-            <div id="ov-docker-version" style="margin-top:4px;color:var(--text-ghost)">DOCKER: --</div>
-            <div id="ov-os-info" style="margin-top:4px;color:var(--text-ghost)">OS: --</div>
-            <div id="ov-arch" style="margin-top:4px;color:var(--text-ghost)">ARCH: --</div>
+          <div class="panel-body" style="padding:var(--space-sm);height:140px">
+            <canvas id="ov-status-pie-chart"></canvas>
           </div>
         </div>
       </div>
@@ -103,20 +95,38 @@ export async function mountOverview(container) {
   // ── State ───────────────────────────────────────────────────────
   let filter = 'all';
   let search = '';
-  let memChartInstance = null;
-  let memHistory = { ts: [], mem: [] };
+  let sortField = 'cpu';
+  let sortDir = 'desc'; // default sort highest CPU first
+  let memPieChart = null;
+  let statusPieChart = null;
   const cleanups = [];
 
-  // ── Init memory chart ───────────────────────────────────────────
-  const memCanvas = document.getElementById('ov-mem-chart');
-  if (memCanvas) {
-    memChartInstance = createMemChart(memCanvas, { ts: [], mem: [] });
+  // ── Init Donut Charts ───────────────────────────────────────────
+  const memPieCanvas = document.getElementById('ov-mem-pie-chart');
+  if (memPieCanvas) {
+    memPieChart = createDoughnutChart(
+      memPieCanvas,
+      ['Used', 'Free'],
+      [0, 100],
+      ['#39ff14', '#182a18']
+    );
+  }
+
+  const statusPieCanvas = document.getElementById('ov-status-pie-chart');
+  if (statusPieCanvas) {
+    statusPieChart = createDoughnutChart(
+      statusPieCanvas,
+      ['Running', 'Stopped', 'Other'],
+      [0, 0, 0],
+      ['#1acc55', '#4a5f4a', '#d4a827']
+    );
   }
 
   // ── Subscribe to containers ─────────────────────────────────────
   const unsubContainers = state.subscribe('containers', containers => {
     renderTable(containers);
     renderSummary(containers);
+    updateStatusPieChart(containers);
   });
   cleanups.push(unsubContainers);
 
@@ -125,7 +135,7 @@ export async function mountOverview(container) {
     if (!host) return;
     renderHostBanner(host);
     renderHostDetail(host);
-    updateMemChart(host);
+    updateMemPieChart(host);
   });
   cleanups.push(unsubHost);
 
@@ -144,6 +154,37 @@ export async function mountOverview(container) {
     renderTable(state.get('containers'));
   });
 
+  // ── Sort header clicks ──────────────────────────────────────────
+  container.querySelectorAll('.sortable-th').forEach(th => {
+    th.addEventListener('click', () => {
+      const field = th.dataset.sort;
+      if (sortField === field) {
+        sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        sortField = field;
+        sortDir = (field === 'name' || field === 'state') ? 'asc' : 'desc';
+      }
+      updateSortHeaders();
+      renderTable(state.get('containers'));
+    });
+  });
+
+  function updateSortHeaders() {
+    container.querySelectorAll('.sortable-th').forEach(th => {
+      const icon = th.querySelector('.sort-icon');
+      if (!icon) return;
+      if (th.dataset.sort === sortField) {
+        icon.textContent = sortDir === 'asc' ? '▲' : '▼';
+        th.style.color = 'var(--green-bright)';
+      } else {
+        icon.textContent = '';
+        th.style.color = 'var(--text-dim)';
+      }
+    });
+  }
+
+  updateSortHeaders();
+
   // ── Render functions ────────────────────────────────────────────
   function renderTable(containers) {
     const tbody = document.getElementById('ov-tbody');
@@ -152,6 +193,40 @@ export async function mountOverview(container) {
     let filtered = containers || [];
     if (filter !== 'all') filtered = filtered.filter(c => c.state === filter);
     if (search) filtered = filtered.filter(c => c.name.toLowerCase().includes(search) || c.image.toLowerCase().includes(search));
+
+    // Sort containers
+    filtered = [...filtered].sort((a, b) => {
+      let valA, valB;
+      switch (sortField) {
+        case 'name':
+          valA = a.name.toLowerCase(); valB = b.name.toLowerCase();
+          break;
+        case 'state':
+          valA = a.state; valB = b.state;
+          break;
+        case 'cpu':
+          valA = a.stats?.cpu ?? -1; valB = b.stats?.cpu ?? -1;
+          break;
+        case 'mem':
+          valA = a.stats?.mem?.percent ?? -1; valB = b.stats?.mem?.percent ?? -1;
+          break;
+        case 'net':
+          valA = (a.stats?.net?.rx || 0) + (a.stats?.net?.tx || 0);
+          valB = (b.stats?.net?.rx || 0) + (b.stats?.net?.tx || 0);
+          break;
+        case 'pids':
+          valA = a.stats?.pids ?? -1; valB = b.stats?.pids ?? -1;
+          break;
+        case 'age':
+          valA = a.created ?? 0; valB = b.created ?? 0;
+          break;
+        default:
+          valA = a.name; valB = b.name;
+      }
+      if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+      if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
 
     if (filtered.length === 0) {
       tbody.innerHTML = `<tr><td colspan="7" class="log-empty">NO CONTAINERS MATCH FILTER</td></tr>`;
@@ -234,24 +309,28 @@ export async function mountOverview(container) {
       </div>
     `).join('');
 
-    setText('ov-docker-version', `DOCKER: ${host.dockerVersion || '--'}`);
-    setText('ov-os-info', `OS: ${host.os || '--'}`);
-    setText('ov-arch', `ARCH: ${host.arch || '--'}`);
     setText('ov-cnt-images', host.images ?? '--');
   }
 
-  function updateMemChart(host) {
-    if (!memChartInstance) return;
-    memHistory.ts.push(Date.now());
-    memHistory.mem.push(host.memPercent || 0);
-    if (memHistory.ts.length > 120) { memHistory.ts.shift(); memHistory.mem.shift(); }
-
-    const data = memHistory.ts.map((t, i) => ({ x: t, y: memHistory.mem[i] }));
-    memChartInstance.data.datasets[0].data = data;
-    memChartInstance.update('none');
+  function updateMemPieChart(host) {
+    if (!memPieChart) return;
+    const usedGB = (host.memUsed / (1024 * 1024 * 1024)).toFixed(1);
+    const freeGB = (host.memFree / (1024 * 1024 * 1024)).toFixed(1);
+    memPieChart.data.datasets[0].data = [parseFloat(usedGB), parseFloat(freeGB)];
+    memPieChart.update('none');
 
     const pctEl = document.getElementById('ov-mem-pct');
     if (pctEl) pctEl.textContent = fmtPct(host.memPercent);
+  }
+
+  function updateStatusPieChart(containers) {
+    if (!statusPieChart || !containers) return;
+    const running = containers.filter(c => c.state === 'running').length;
+    const stopped = containers.filter(c => c.state === 'exited' || c.state === 'stopped').length;
+    const other   = containers.length - running - stopped;
+
+    statusPieChart.data.datasets[0].data = [running, stopped, Math.max(0, other)];
+    statusPieChart.update('none');
   }
 
   function setText(id, val) {
@@ -261,7 +340,8 @@ export async function mountOverview(container) {
 
   return () => {
     cleanups.forEach(fn => fn?.());
-    memChartInstance?.destroy();
+    memPieChart?.destroy();
+    statusPieChart?.destroy();
   };
 }
 

@@ -145,8 +145,10 @@ async function boot() {
     });
   });
 
-  // ── Guest: hide logs nav link (access is per-container) ─────────
+  // ── Guest: hide containers and logs nav links ────────────────────
   if (user.role === 'guest') {
+    const containersNav = document.getElementById('nav-containers');
+    if (containersNav) containersNav.closest('li').style.display = 'none';
     const logsNav = document.getElementById('nav-logs');
     if (logsNav) logsNav.closest('li').style.display = 'none';
   }
