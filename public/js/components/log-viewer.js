@@ -87,12 +87,12 @@ export function createLogViewer(containerId, options = {}) {
       body.innerHTML = '<div class="log-empty">NO MATCHING LOG ENTRIES</div>';
       return;
     }
-    // Rebuild DOM efficiently
+    // Rebuild DOM efficiently - newest on top
     const frag = document.createDocumentFragment();
-    visible.forEach(line => frag.appendChild(renderLine(line)));
+    [...visible].reverse().forEach(line => frag.appendChild(renderLine(line)));
     body.innerHTML = '';
     body.appendChild(frag);
-    if (autoScroll) body.scrollTop = body.scrollHeight;
+    body.scrollTop = 0;
   }
 
   function addLine(line) {
@@ -107,10 +107,10 @@ export function createLogViewer(containerId, options = {}) {
     if (!levels[line.level]) return; // filtered out
 
     const el = renderLine(line);
-    body.appendChild(el);
+    body.prepend(el);
 
     if (autoScroll) {
-      requestAnimationFrame(() => { body.scrollTop = body.scrollHeight; });
+      body.scrollTop = 0;
     }
   }
 
