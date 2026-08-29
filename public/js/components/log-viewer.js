@@ -53,12 +53,7 @@ export function createLogViewer(containerId, options = {}) {
     });
   });
 
-  // Auto-scroll toggle
-  scrollBtn?.addEventListener('click', () => {
-    autoScroll = !autoScroll;
-    scrollBtn.classList.toggle('on', autoScroll);
-    scrollBtn.innerHTML = `<i class="ph ph-arrow-line-down"></i> AUTO`;
-  });
+
 
   // Clear
   clearBtn?.addEventListener('click', () => {
