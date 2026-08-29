@@ -59,8 +59,8 @@ async function start() {
 
     // Start HTTP server
     app.listen(PORT, () => {
-      console.log(`[NOC Monitor] Running at http://localhost:${PORT}`);
-      console.log(`[NOC Monitor] Admin login: admin / password`);
+      console.log(`[Dockermon] Running at http://localhost:${PORT}`);
+      console.log(`[Dockermon] Admin login: admin / password`);
     });
   } catch (err) {
     console.error('[Startup] Fatal error:', err);

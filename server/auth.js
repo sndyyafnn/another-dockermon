@@ -18,8 +18,8 @@ function setAuthCookie(res, payload) {
   const token = signToken(payload);
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    sameSite: 'strict',
-    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    secure:   process.env.COOKIE_SECURE === 'true',
     maxAge:   24 * 60 * 60 * 1000, // 24h ms
   });
   return token;
